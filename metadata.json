@@ -1,0 +1,5 @@
+{
+  "name": "mcLogViewer_v25111",
+  "description": "An integrated platform for analyzing flight log CSV files, visualizing data through interactive charts, and providing tools for RMA inspection logging.",
+  "requestFramePermissions": []
+}
