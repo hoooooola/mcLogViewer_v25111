@@ -60,4 +60,4 @@
     ```
 
 3.  **開啟應用程式**:
-    終端機將會顯示應用程式正在運行的網址（通常是 `http://localhost:XXXX`）。在您的網頁瀏覽器中開啟此網址，即可開始使用。
+    終端機將會顯示應用程式正在運行的網址（通常是 `http://localhost:XXXX`）。在您的網頁瀏覽器中開啟此網址，即可開始使用。© 2025 CiRC Inc. · mcLogViewer_v25111 · created by Dr. erica

@@ -119,7 +119,7 @@ export default function App() {
                 </div>
             </main>
             <footer>
-                <p className="text-center text-text-secondary mt-8 text-sm">© 2025 CiRC Inc. · Flight Log Analyzer · created by Dr. erica</p>
+                <p className="text-center text-text-secondary mt-8 text-sm">© 2025 CiRC Inc. · mcLogViewer_v25111 · created by Dr. erica</p>
             </footer>
         </div>
     );
