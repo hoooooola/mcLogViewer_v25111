@@ -43,6 +43,8 @@ export const LogInfo: React.FC<LogInfoProps> = ({
             
             <input
                 type="file"
+                id="log-file-input"
+                name="log-file-input"
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 accept=".csv"
@@ -70,7 +72,7 @@ export const LogInfo: React.FC<LogInfoProps> = ({
 
             <div className="mt-4 pt-4 border-t border-border space-y-3">
                  <label className="non-printable flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={isSmooth} onChange={(e) => setIsSmooth(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
+                    <input type="checkbox" id="smooth-curves" name="smooth-curves" checked={isSmooth} onChange={(e) => setIsSmooth(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
                     <span className="text-text-secondary">平滑圖表曲線</span>
                  </label>
                  <button onClick={toggleTheme} className="non-printable w-full bg-secondary text-white font-bold py-2 px-4 rounded-md hover:bg-opacity-80 transition-colors">

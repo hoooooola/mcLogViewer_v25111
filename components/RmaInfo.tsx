@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card } from './Card';
 
 const getFormattedDateTime = () => {
@@ -20,8 +20,8 @@ export const RmaInfo: React.FC<RmaInfoProps> = ({ addActionLog }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isDrawing, setIsDrawing] = useState(false);
 
-    // Function to get the canvas 2D context
-    const getCtx = () => canvasRef.current?.getContext('2d');
+    // Function to get the canvas 2D context, memoized with useCallback
+    const getCtx = useCallback(() => canvasRef.current?.getContext('2d'), []);
 
     // Effect for setting up canvas when modal opens
     useEffect(() => {
@@ -30,6 +30,7 @@ export const RmaInfo: React.FC<RmaInfoProps> = ({ addActionLog }) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
+        let observer: MutationObserver | null = null;
         // Use a timeout to ensure the modal and canvas are fully rendered and have dimensions
         const timer = setTimeout(() => {
             const setCanvasStyle = () => {
@@ -49,9 +50,9 @@ export const RmaInfo: React.FC<RmaInfoProps> = ({ addActionLog }) => {
             };
 
             setCanvasStyle();
-            // We don't need resize listener for a fixed-size modal
-            // But theme change listener is still good
-            const observer = new MutationObserver((mutations) => {
+
+            // Correctly set up and tear down the observer
+            observer = new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'class' && mutation.target === document.documentElement) {
                         setCanvasStyle(); // Re-apply styles on theme change
@@ -60,13 +61,16 @@ export const RmaInfo: React.FC<RmaInfoProps> = ({ addActionLog }) => {
             });
             observer.observe(document.documentElement, { attributes: true });
 
-            return () => {
-                observer.disconnect();
-            };
         }, 50); // Small delay to ensure correct layout measurement
 
-        return () => clearTimeout(timer);
-    }, [isModalOpen]);
+        // Cleanup function for the useEffect hook
+        return () => {
+            clearTimeout(timer);
+            if (observer) {
+                observer.disconnect();
+            }
+        };
+    }, [isModalOpen, getCtx]);
 
 
     const getCoords = (e: React.MouseEvent | React.TouchEvent): { x: number; y: number } | null => {
@@ -109,12 +113,29 @@ export const RmaInfo: React.FC<RmaInfoProps> = ({ addActionLog }) => {
         ctx.stroke();
     };
     
-    const stopDrawing = () => {
+    const stopDrawing = useCallback(() => {
         const ctx = getCtx();
         if (!ctx) return;
         ctx.closePath();
         setIsDrawing(false);
-    };
+    }, [getCtx]);
+
+    // Effect to handle stopping drawing when mouse/touch is released anywhere on the page
+    useEffect(() => {
+        if (!isDrawing) return; // Only add listeners when drawing starts
+
+        const handleUp = () => {
+            stopDrawing();
+        };
+
+        window.addEventListener('mouseup', handleUp);
+        window.addEventListener('touchend', handleUp);
+        
+        return () => {
+            window.removeEventListener('mouseup', handleUp);
+            window.removeEventListener('touchend', handleUp);
+        };
+    }, [isDrawing, stopDrawing]);
 
     const clearModalCanvas = () => {
         const canvas = canvasRef.current;
@@ -268,11 +289,9 @@ export const RmaInfo: React.FC<RmaInfoProps> = ({ addActionLog }) => {
                             className="w-full h-48 bg-bkg border border-border rounded-md cursor-crosshair touch-none"
                             onMouseDown={startDrawing}
                             onMouseMove={draw}
-                            onMouseUp={stopDrawing}
                             onMouseLeave={stopDrawing}
                             onTouchStart={startDrawing}
                             onTouchMove={draw}
-                            onTouchEnd={stopDrawing}
                         />
                         <div className="flex justify-end gap-3 mt-4">
                             <button onClick={clearModalCanvas} className="bg-secondary text-white font-bold py-2 px-4 rounded-md hover:bg-opacity-80 transition-colors">

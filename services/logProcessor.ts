@@ -53,25 +53,36 @@ export function processMetadata(data: any[]): FlightInfo {
         }
     }
 
-    // 2. Check for 'unix_time' solely to get the absolute takeoff time.
-    const firstUnixEntry = data.find(row => row && row.unix_time && isFinite(row.unix_time) && row.unix_time > 0);
-
-    if (firstUnixEntry) {
-        const tsStartMs = firstUnixEntry.unix_time < 1e12 ? firstUnixEntry.unix_time * 1000 : firstUnixEntry.unix_time;
-        const flightDate = new Date(tsStartMs);
+    // 2. Check for an absolute takeoff time from multiple possible headers.
+    const unixTimeKeys = ['unix_time', 'blackbox.sensor_values.gps_data.unix_time'];
+    let takeoffTimestamp: number | null = null;
+    
+    for (const row of data) {
+        if (row) {
+            const ts = findValueFromKeys(row, unixTimeKeys);
+            if (ts !== null && isFinite(ts) && ts > 0) {
+                takeoffTimestamp = ts;
+                break; // Found the first valid timestamp
+            }
+        }
+    }
+    
+    if (takeoffTimestamp !== null) {
+        const takeoffTimestampMs = takeoffTimestamp < 1e12 ? takeoffTimestamp * 1000 : takeoffTimestamp; // handle seconds vs milliseconds
+        const flightDate = new Date(takeoffTimestampMs);
         const taipeiTime = new Intl.DateTimeFormat('zh-TW', {
             dateStyle: 'long', timeStyle: 'medium', timeZone: 'Asia/Taipei', hourCycle: 'h23'
         }).format(flightDate);
-
+        
         return { 
             takeoffTime: taipeiTime, 
-            totalDuration, // Use duration calculated from 'time' column for consistency
-            takeoffTimestampMs: tsStartMs, 
+            totalDuration,
+            takeoffTimestampMs, 
             isRelativeTime: false 
         };
     }
     
-    // 3. If no 'unix_time', it's a relative timeline.
+    // 3. If no absolute timestamp is found, it's a relative timeline.
     if (!isFinite(minTime)) { // No time data at all
         return { takeoffTime: 'N/A', totalDuration: 'N/A', takeoffTimestampMs: 0, isRelativeTime: true };
     }

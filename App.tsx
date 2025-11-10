@@ -17,6 +17,7 @@ export default function App() {
     const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
     const [actionLogs, setActionLogs] = useState<ActionLog[]>([{ time: new Date(), message: '頁面已載入。' }]);
     const [syncTime, setSyncTime] = useState<number | null>(null);
+    const [rawCsvData, setRawCsvData] = useState<any[] | null>(null);
     
     const addActionLog = useCallback((message: string) => {
         setActionLogs(prev => [...prev, { time: new Date(), message }]);
@@ -28,6 +29,7 @@ export default function App() {
         setLogData(null);
         setFlightPath(null);
         setFlightInfo(null);
+        setRawCsvData(null);
         setFileName(file.name);
         setActiveChartGroups(['power']); // Reset to default on new file
         addActionLog(`正在解析檔案：${file.name}`);
@@ -39,6 +41,7 @@ export default function App() {
             complete: (results: any) => {
                 try {
                     addActionLog('解析完成，正在處理數據...');
+                    setRawCsvData(results.data);
                     const metadata = processMetadata(results.data);
                     const { chartData, flightPath } = processRawData(results.data);
                     setFlightInfo(metadata);
@@ -110,6 +113,7 @@ export default function App() {
                         logData={logData}
                         flightInfo={flightInfo}
                         flightPath={flightPath}
+                        rawCsvData={rawCsvData}
                         activeChartGroups={activeChartGroups} 
                         isSmooth={isSmooth}
                         onTimeSync={setSyncTime}

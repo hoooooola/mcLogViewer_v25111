@@ -1,7 +1,7 @@
 
-import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import React, { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Brush } from 'recharts';
-import { LogData, ChartGroup, ChartDefinition, FlightInfo, FlightPathPoint, DataPoint } from '../types';
+import { LogData, ChartGroup, ChartDefinition, FlightInfo, FlightPathPoint } from '../types';
 import { CHART_DEFINITIONS, DATA_COLORS } from '../constants';
 import { Card } from './Card';
 import { CesiumViewer } from './CesiumViewer';
@@ -11,6 +11,7 @@ interface RightPanelProps {
     logData: LogData | null;
     flightInfo: FlightInfo | null;
     flightPath: FlightPathPoint[] | null;
+    rawCsvData: any[] | null;
     activeChartGroups: ChartGroup[];
     isSmooth: boolean;
     onTimeSync: (time: number | null) => void;
@@ -119,9 +120,9 @@ const Chart: React.FC<ChartProps> = ({ chartDef, data, isSmooth, syncId, flightI
 };
 
 
-export const RightPanel: React.FC<RightPanelProps> = ({ logData, flightInfo, flightPath, activeChartGroups, isSmooth, onTimeSync, syncTime, isDarkMode }) => {
+export const RightPanel: React.FC<RightPanelProps> = ({ logData, flightInfo, flightPath, rawCsvData, activeChartGroups, isSmooth, onTimeSync, syncTime, isDarkMode }) => {
     const [timeRange, setTimeRange] = useState<{ start: number; end: number } | null>(null);
-    
+
     const chartsToShow = useMemo(() => {
         return activeChartGroups.flatMap(group => CHART_DEFINITIONS[group]);
     }, [activeChartGroups]);
@@ -214,7 +215,9 @@ export const RightPanel: React.FC<RightPanelProps> = ({ logData, flightInfo, fli
     return (
         <div className="flex flex-col gap-6">
              <Card>
-                <h2 className="text-lg font-semibold border-b border-border pb-2 mb-3 text-text-primary">Cesium 視窗</h2>
+                <div className="flex justify-between items-center border-b border-border pb-2 mb-3">
+                    <h2 className="text-lg font-semibold text-text-primary">Cesium 視窗</h2>
+                </div>
                 <CesiumViewer flightPath={flightPath} />
             </Card>
              <Card>
